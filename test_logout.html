@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Logout Functionality</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .test-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 1rem;
+        }
+        .logout-btn {
+            background: #dc2626;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .success { background: #d1fae5; color: #065f46; }
+        .error { background: #fee2e2; color: #dc2626; }
+        .info { background: #dbeafe; color: #1e40af; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Logout Functionality Test</h1>
+        
+        <div id="status" class="status info">
+            Ready to test logout functionality
+        </div>
+
+        <h3>Current Status:</h3>
+        <p><strong>User Data:</strong> <span id="user-status">Checking...</span></p>
+        <p><strong>Local Storage:</strong> <span id="storage-status">Checking...</span></p>
+
+        <h3>Test Actions:</h3>
+        <button class="test-btn" onclick="createTestUser()">1. Create Test User</button>
+        <button class="test-btn logout-btn" onclick="testLogout()">2. Test Logout</button>
+        <button class="test-btn" onclick="checkStatus()">3. Check Status</button>
+        <button class="test-btn" onclick="clearAll()">4. Clear All Data</button>
+
+        <h3>Test Results:</h3>
+        <div id="results"></div>
+
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Click "Create Test User" to simulate a logged-in user</li>
+            <li>Click "Test Logout" to test the logout functionality</li>
+            <li>Check if it properly clears data and redirects</li>
+        </ol>
+    </div>
+
+    <script>
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const resultItem = document.createElement('div');
+            resultItem.className = `status ${type}`;
+            resultItem.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            resultsDiv.appendChild(resultItem);
+        }
+
+        function createTestUser() {
+            const testUser = {
+                uid: 'test-user-123',
+                email: 'test@example.com',
+                displayName: 'Test User'
+            };
+            
+            localStorage.setItem('busTracker_user', JSON.stringify(testUser));
+            updateStatus('Test user created successfully', 'success');
+            addResult('Created test user in localStorage', 'success');
+            checkStatus();
+        }
+
+        function testLogout() {
+            try {
+                updateStatus('Testing logout functionality...', 'info');
+                addResult('Starting logout test...', 'info');
+
+                // Simulate the logout process
+                const userBefore = localStorage.getItem('busTracker_user');
+                if (!userBefore) {
+                    addResult('No user data found before logout', 'error');
+                    return;
+                }
+
+                addResult('User data found, proceeding with logout', 'info');
+
+                // Clear localStorage (main logout action)
+                localStorage.removeItem('busTracker_user');
+
+                // Check if cleared
+                const userAfter = localStorage.getItem('busTracker_user');
+                if (userAfter === null) {
+                    updateStatus('Logout successful - data cleared', 'success');
+                    addResult('✅ localStorage cleared successfully', 'success');
+                } else {
+                    updateStatus('Logout failed - data still exists', 'error');
+                    addResult('❌ localStorage NOT cleared', 'error');
+                }
+
+                // Test redirect (simulate)
+                addResult('In real app, would redirect to auth.html', 'info');
+                
+                checkStatus();
+
+            } catch (error) {
+                updateStatus('Logout test failed with error', 'error');
+                addResult(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function checkStatus() {
+            const userData = localStorage.getItem('busTracker_user');
+            const userStatusSpan = document.getElementById('user-status');
+            const storageStatusSpan = document.getElementById('storage-status');
+
+            if (userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    userStatusSpan.textContent = `Logged in as: ${user.displayName || user.email}`;
+                    userStatusSpan.style.color = '#065f46';
+                } catch (error) {
+                    userStatusSpan.textContent = 'Invalid user data';
+                    userStatusSpan.style.color = '#dc2626';
+                }
+                storageStatusSpan.textContent = 'User data exists';
+                storageStatusSpan.style.color = '#065f46';
+            } else {
+                userStatusSpan.textContent = 'Not logged in';
+                userStatusSpan.style.color = '#dc2626';
+                storageStatusSpan.textContent = 'No user data';
+                storageStatusSpan.style.color = '#dc2626';
+            }
+        }
+
+        function clearAll() {
+            localStorage.removeItem('busTracker_user');
+            document.getElementById('results').innerHTML = '';
+            updateStatus('All data cleared', 'success');
+            checkStatus();
+        }
+
+        // Test the global logout function if available
+        function testGlobalLogout() {
+            if (typeof handleGlobalLogout === 'function') {
+                addResult('Testing global logout function...', 'info');
+                handleGlobalLogout();
+            } else {
+                addResult('Global logout function not available', 'error');
+            }
+        }
+
+        // Initialize
+        checkStatus();
+    </script>
+</body>
+</html>
